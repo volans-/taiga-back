@@ -22,6 +22,7 @@ from taiga.base.neighbors import NeighborsSerializerMixin
 from taiga.base.utils import json
 
 from taiga.mdrender.service import render as mdrender
+from taiga.projects.attachments.serializers import RelatedAttachmentsSerializer
 from taiga.projects.validators import ProjectExistsValidator
 from taiga.projects.validators import UserStoryStatusExistsValidator
 from taiga.projects.userstories.validators import UserStoryExistsValidator
@@ -45,7 +46,8 @@ class RolePointsField(serializers.WritableField):
         return json.loads(obj)
 
 
-class UserStorySerializer(WatchersValidator, VotedResourceSerializerMixin, WatchedResourceModelSerializer, serializers.ModelSerializer):
+class UserStorySerializer(WatchersValidator, VotedResourceSerializerMixin, WatchedResourceModelSerializer,
+                          serializers.ModelSerializer):
     tags = TagsField(default=[], required=False)
     external_reference = PgArrayField(required=False)
     points = RolePointsField(source="role_points", required=False)
@@ -100,7 +102,7 @@ class UserStorySerializer(WatchersValidator, VotedResourceSerializerMixin, Watch
         return mdrender(obj.project, obj.description)
 
 
-class UserStoryListSerializer(UserStorySerializer):
+class UserStoryListSerializer(RelatedAttachmentsSerializer, UserStorySerializer):
     class Meta:
         model = models.UserStory
         depth = 0

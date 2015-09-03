@@ -22,6 +22,7 @@ from taiga.base.fields import PgArrayField
 from taiga.base.neighbors import NeighborsSerializerMixin
 
 from taiga.mdrender.service import render as mdrender
+from taiga.projects.attachments.serializers import RelatedAttachmentsSerializer
 from taiga.projects.validators import ProjectExistsValidator
 from taiga.projects.milestones.validators import SprintExistsValidator
 from taiga.projects.tasks.validators import TaskExistsValidator
@@ -35,7 +36,8 @@ from taiga.users.serializers import UserBasicInfoSerializer
 from . import models
 
 
-class TaskSerializer(WatchersValidator, VotedResourceSerializerMixin, WatchedResourceModelSerializer, serializers.ModelSerializer):
+class TaskSerializer(WatchersValidator, VotedResourceSerializerMixin, WatchedResourceModelSerializer,
+                     serializers.ModelSerializer):
     tags = TagsField(required=False, default=[])
     external_reference = PgArrayField(required=False)
     comment = serializers.SerializerMethodField("get_comment")
@@ -70,7 +72,7 @@ class TaskSerializer(WatchersValidator, VotedResourceSerializerMixin, WatchedRes
         return obj.status.is_closed
 
 
-class TaskListSerializer(TaskSerializer):
+class TaskListSerializer(RelatedAttachmentsSerializer, TaskSerializer):
     class Meta:
         model = models.Task
         read_only_fields = ('id', 'ref', 'created_date', 'modified_date')

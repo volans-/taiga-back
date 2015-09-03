@@ -39,3 +39,24 @@ class AttachmentSerializer(serializers.ModelSerializer):
 
     def get_url(self, obj):
         return obj.attached_file.url
+
+
+class BasicAttachmentSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField("get_url")
+
+    class Meta:
+        model = models.Attachment
+        fields = ("id", "owner", "name", "size", "url",
+                  "description", "is_deprecated", "created_date", "modified_date",
+                  "order")
+
+    def get_url(self, obj):
+        return obj.attached_file.url
+
+
+class RelatedAttachmentsSerializer(serializers.ModelSerializer):
+    """
+    This class is useful to add attachments list to other serializer
+    (ex. UserStorySerializer, TaskSerializer...).
+    """
+    attachments = BasicAttachmentSerializer(read_only=True)
