@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.core import validators
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 
@@ -38,6 +39,14 @@ class BaseRegisterSerializer(serializers.Serializer):
         except ValidationError:
             raise serializers.ValidationError(_("Required. 255 characters or fewer. Letters, numbers "
                                                 "and /./-/_ characters'"))
+        return attrs
+
+    def validate_email(self, attrs, source):
+        value = attrs[source]
+        domain_name = value.split("@")[1]
+
+        if settings.REGISTER_ALLOWED_DOMAINS and domain_name not in settings.REGISTER_ALLOWED_DOMAINS:
+            raise serializers.ValidationError(_("You email domain is not allowed"))
         return attrs
 
 
