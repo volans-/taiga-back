@@ -282,6 +282,8 @@ class ProjectViewSet(LikedResourceMixin, HistoryResourceMixin, ModelCrudViewSet)
         template_name = request.DATA.get('template_name', None)
         template_description = request.DATA.get('template_description', None)
 
+        project = self.get_object()
+
         if not template_name:
             raise response.BadRequest(_("Not valid template name"))
 
@@ -289,8 +291,6 @@ class ProjectViewSet(LikedResourceMixin, HistoryResourceMixin, ModelCrudViewSet)
             raise response.BadRequest(_("Not valid template description"))
 
         template_slug = slugify_uniquely(template_name, models.ProjectTemplate)
-
-        project = self.get_object()
 
         self.check_permissions(request, 'create_template', project)
 
@@ -489,7 +489,7 @@ class MembershipViewSet(ModelCrudViewSet):
 
     def get_serializer_class(self):
         use_admin_serializer = False
-        
+
         if self.action == "create":
             use_admin_serializer = True
 

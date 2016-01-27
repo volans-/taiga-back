@@ -380,6 +380,11 @@ LOGGING = {
             "handlers": ["console"],
             "level": "DEBUG",
             "propagate": False,
+        },
+        "bi": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
         }
     }
 }
