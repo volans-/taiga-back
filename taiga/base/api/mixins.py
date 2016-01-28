@@ -98,7 +98,7 @@ class CreateModelMixin:
             self.post_save(self.object, created=True)
 
             headers = self.get_success_headers(serializer.data)
-            bilogger(request.user, self, id=self.object.id)
+            bilogger(request, self, obj=self.object)
             return response.Created(serializer.data, headers=headers)
 
         return response.BadRequest(serializer.errors)
@@ -137,7 +137,7 @@ class ListModelMixin:
         else:
             serializer = self.get_serializer(self.object_list, many=True)
 
-        bilogger(request.user, self)
+        bilogger(request, self)
         return response.Ok(serializer.data)
 
 
@@ -154,7 +154,7 @@ class RetrieveModelMixin:
             raise Http404
 
         serializer = self.get_serializer(self.object)
-        bilogger(request.user, self, id=self.object.id)
+        bilogger(request, self, obj=self.object)
         return response.Ok(serializer.data)
 
 
@@ -192,7 +192,7 @@ class UpdateModelMixin:
 
         self.object = serializer.save(force_update=True)
         self.post_save(self.object, created=False)
-        bilogger(request.user, self, id=self.object.id)
+        bilogger(request, self, obj=self.object)
         return response.Ok(serializer.data)
 
     def partial_update(self, request, *args, **kwargs):
@@ -242,5 +242,5 @@ class DestroyModelMixin:
         self.pre_conditions_on_delete(obj)
         obj.delete()
         self.post_delete(obj)
-        bilogger(request.user, self, id=obj.id)
+        bilogger(request, self, obj=obj)
         return response.NoContent()

@@ -163,7 +163,7 @@ class ProjectViewSet(LikedResourceMixin, HistoryResourceMixin, ModelCrudViewSet)
         self.object.save(update_fields=["logo"])
 
         serializer = self.get_serializer(self.object)
-        bilogger(request.user, self, id=self.object.id)
+        bilogger(request, self, obj=self.object)
         return response.Ok(serializer.data)
 
     @detail_route(methods=["POST"])
@@ -178,7 +178,7 @@ class ProjectViewSet(LikedResourceMixin, HistoryResourceMixin, ModelCrudViewSet)
         self.object.save(update_fields=["logo"])
 
         serializer = self.get_serializer(self.object)
-        bilogger(request.user, self, id=self.object.id)
+        bilogger(request, self, obj=self.object)
         return response.Ok(serializer.data)
 
     @detail_route(methods=["POST"])
@@ -187,7 +187,7 @@ class ProjectViewSet(LikedResourceMixin, HistoryResourceMixin, ModelCrudViewSet)
         self.check_permissions(request, "watch", project)
         notify_level = request.DATA.get("notify_level", NotifyLevel.involved)
         project.add_watcher(self.request.user, notify_level=notify_level)
-        bilogger(request.user, self, id=project.id)
+        bilogger(request, self, obj=project)
         return response.Ok()
 
     @detail_route(methods=["POST"])
@@ -196,7 +196,7 @@ class ProjectViewSet(LikedResourceMixin, HistoryResourceMixin, ModelCrudViewSet)
         self.check_permissions(request, "unwatch", project)
         user = self.request.user
         project.remove_watcher(user)
-        bilogger(request.user, self, id=project.id)
+        bilogger(request, self, obj=project)
         return response.Ok()
 
     @list_route(methods=["POST"])
@@ -210,7 +210,7 @@ class ProjectViewSet(LikedResourceMixin, HistoryResourceMixin, ModelCrudViewSet)
 
         data = serializer.data
         services.update_projects_order_in_bulk(data, "user_order", request.user)
-        bilogger(request.user, self)
+        bilogger(request, self)
         return response.NoContent(data=None)
 
     @list_route(methods=["GET"])
@@ -226,20 +226,20 @@ class ProjectViewSet(LikedResourceMixin, HistoryResourceMixin, ModelCrudViewSet)
         modules_config = services.get_modules_config(project)
 
         if request.method == "GET":
-            bilogger(request.user, self, type="modules-get", id=project.id)
+            bilogger(request, self, type="modules-get", obj=project)
             return response.Ok(modules_config.config)
 
         else:
             modules_config.config.update(request.DATA)
             modules_config.save()
-            bilogger(request.user, self, action="modules-update", id=project.id)
+            bilogger(request, self, action="modules-update", obj=project)
             return response.NoContent()
 
     @detail_route(methods=["GET"])
     def stats(self, request, pk=None):
         project = self.get_object()
         self.check_permissions(request, "stats", project)
-        bilogger(request.user, self, id=project.id)
+        bilogger(request, self, id=project.id)
         return response.Ok(services.get_stats_for_project(project))
 
     def _regenerate_csv_uuid(self, project, field):
@@ -253,7 +253,7 @@ class ProjectViewSet(LikedResourceMixin, HistoryResourceMixin, ModelCrudViewSet)
         project = self.get_object()
         self.check_permissions(request, "regenerate_userstories_csv_uuid", project)
         data = {"uuid": self._regenerate_csv_uuid(project, "userstories_csv_uuid")}
-        bilogger(request.user, self, id=project.id)
+        bilogger(request, self, obj=project)
         return response.Ok(data)
 
     @detail_route(methods=["POST"])
@@ -261,7 +261,7 @@ class ProjectViewSet(LikedResourceMixin, HistoryResourceMixin, ModelCrudViewSet)
         project = self.get_object()
         self.check_permissions(request, "regenerate_issues_csv_uuid", project)
         data = {"uuid": self._regenerate_csv_uuid(project, "issues_csv_uuid")}
-        bilogger(request.user, self, id=project.id)
+        bilogger(request, self, obj=project)
         return response.Ok(data)
 
     @detail_route(methods=["POST"])
@@ -269,28 +269,28 @@ class ProjectViewSet(LikedResourceMixin, HistoryResourceMixin, ModelCrudViewSet)
         project = self.get_object()
         self.check_permissions(request, "regenerate_tasks_csv_uuid", project)
         data = {"uuid": self._regenerate_csv_uuid(project, "tasks_csv_uuid")}
-        bilogger(request.user, self, id=project.id)
+        bilogger(request, self, obj=project)
         return response.Ok(data)
 
     @detail_route(methods=["GET"])
     def member_stats(self, request, pk=None):
         project = self.get_object()
         self.check_permissions(request, "member_stats", project)
-        bilogger(request.user, self, id=project.id)
+        bilogger(request, self, obj=project)
         return response.Ok(services.get_member_stats_for_project(project))
 
     @detail_route(methods=["GET"])
     def issues_stats(self, request, pk=None):
         project = self.get_object()
         self.check_permissions(request, "issues_stats", project)
-        bilogger(request.user, self, id=project.id)
+        bilogger(request, self, obj=project)
         return response.Ok(services.get_stats_for_project_issues(project))
 
     @detail_route(methods=["GET"])
     def tags_colors(self, request, pk=None):
         project = self.get_object()
         self.check_permissions(request, "tags_colors", project)
-        bilogger(request.user, self, id=project.id)
+        bilogger(request, self, obj=project)
         return response.Ok(dict(project.tags_colors))
 
     @detail_route(methods=["POST"])
@@ -301,11 +301,11 @@ class ProjectViewSet(LikedResourceMixin, HistoryResourceMixin, ModelCrudViewSet)
         project = self.get_object()
 
         if not template_name:
-            bilogger(request.user, self, id=project.id, type="error", error="invalid-template-name")
+            bilogger(request, self, obj=project, type="error", error="invalid-template-name")
             raise response.BadRequest(_("Not valid template name"))
 
         if not template_description:
-            bilogger(request.user, self, id=project.id, type="error", error="invalid-template-description")
+            bilogger(request, self, obj=project, type="error", error="invalid-template-description")
             raise response.BadRequest(_("Not valid template description"))
 
         template_slug = slugify_uniquely(template_name, models.ProjectTemplate)
@@ -320,7 +320,7 @@ class ProjectViewSet(LikedResourceMixin, HistoryResourceMixin, ModelCrudViewSet)
 
         template.load_data_from_project(project)
         template.save()
-        bilogger(request.user, self, id=project.id)
+        bilogger(request, self, obj=project)
         return response.Created(serializers.ProjectTemplateSerializer(template).data)
 
     @detail_route(methods=['post'])
@@ -328,7 +328,7 @@ class ProjectViewSet(LikedResourceMixin, HistoryResourceMixin, ModelCrudViewSet)
         project = self.get_object()
         self.check_permissions(request, 'leave', project)
         services.remove_user_from_project(request.user, project)
-        bilogger(request.user, self, id=project.id)
+        bilogger(request, self, obj=project)
         return response.Ok()
 
     def _set_base_permissions(self, obj):
